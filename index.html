@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🎲 太悲苦蛋仔 · 群内抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #fde9e0 0%, #fce4d6 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 蛋仔风格装饰小圆点 */
+        body::before,
+        body::after {
+            content: "🥚";
+            position: fixed;
+            font-size: 60px;
+            opacity: 0.08;
+            transform: rotate(-15deg);
+            pointer-events: none;
+        }
+        body::before {
+            top: 10px;
+            left: 10px;
+        }
+        body::after {
+            bottom: 10px;
+            right: 10px;
+            transform: rotate(25deg);
+        }
+
+        .card {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255, 248, 245, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 56px 56px 48px 48px;
+            padding: 30px 28px 40px;
+            box-shadow: 0 20px 50px rgba(200, 120, 90, 0.25),
+                0 8px 20px rgba(160, 80, 50, 0.10),
+                inset 0 2px 0 rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(255, 215, 190, 0.5);
+            transition: all 0.2s;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 顶部主播区 */
+        .host-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 22px;
+            background: rgba(255, 225, 210, 0.4);
+            padding: 14px 18px 14px 14px;
+            border-radius: 60px;
+            border: 1.5px solid rgba(255, 190, 160, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .avatar-wrapper {
+            flex-shrink: 0;
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #ffb08a, #ff8a6f);
+            box-shadow: 0 4px 12px rgba(230, 120, 80, 0.3);
+        }
+
+        .avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+            object-fit: cover;
+            border: 2px solid #fff6f0;
+            background: #fce4d6;
+        }
+
+        .host-info {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .host-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6b3f2e;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .host-name span {
+            background: #ffc8b0;
+            color: #4f2c1e;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0 12px;
+            border-radius: 30px;
+            line-height: 22px;
+            letter-spacing: 0.3px;
+        }
+
+        .host-sub {
+            font-size: 13px;
+            color: #8f5f4a;
+            opacity: 0.8;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .host-sub i {
+            font-style: normal;
+            background: #ffdccf;
+            padding: 0 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            line-height: 20px;
+            color: #6b3f2e;
+        }
+
+        /* 标题区 + 主题输入 */
+        .title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 26px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #4f2c1e;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-title small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #b07a64;
+            background: #ffede6;
+            padding: 0 14px;
+            border-radius: 40px;
+            line-height: 28px;
+        }
+
+        .theme-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff9f5;
+            border-radius: 40px;
+            padding: 4px 4px 4px 18px;
+            border: 1.5px solid #ffd8c8;
+            box-shadow: inset 0 2px 4px rgba(160, 80, 50, 0.06);
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .theme-input-wrap label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #7a4d38;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .theme-input-wrap label i {
+            font-style: normal;
+            font-size: 18px;
+        }
+
+        .theme-input-wrap input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 0;
+            font-size: 15px;
+            font-weight: 500;
+            color: #3d241a;
+            outline: none;
+            min-width: 60px;
+        }
+
+        .theme-input-wrap input::placeholder {
+            color: #c9a998;
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .theme-input-wrap .emoji-tag {
+            background: #ffe4d6;
+            border-radius: 30px;
+            padding: 4px 14px 4px 10px;
+            font-size: 13px;
+            color: #6b3f2e;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        /* 参数网格 */
+        .param-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .param-item {
+            background: #fff8f4;
+            border-radius: 28px;
+            padding: 16px 18px 18px;
+            border: 1.5px solid #ffdccc;
+            box-shadow: 0 4px 0 #ecd3c4;
+            transition: 0.15s;
+        }
+
+        .param-item:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #ecd3c4;
+        }
+
+        .param-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #5d3a2a;
+            margin-bottom: 10px;
+        }
+
+        .param-label i {
+            font-style: normal;
+            font-size: 18px;
+        }
+
+        .param-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .param-control input[type="number"] {
+            width: 70px;
+            padding: 8px 6px;
+            border: 1.5px solid #f0cdbb;
+            border-radius: 30px;
+            background: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            color: #3d241a;
+            outline: none;
+            transition: 0.15s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .param-control input[type="number"]:focus {
+            border-color: #ff9f7a;
+            box-shadow: 0 0 0 3px rgba(255, 150, 100, 0.2);
+        }
+
+        .param-control input[type="number"]::-webkit-inner-spin-button {
+            opacity: 1;
+            height: 28px;
+        }
+
+        .param-control .range-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8f5f4a;
+            padding: 0 2px;
+        }
+
+        .param-control .range-label.mini {
+            font-size: 12px;
+            color: #b07a64;
+        }
+
+        /* 开关行 (重复) */
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff8f4;
+            border-radius: 40px;
+            padding: 8px 18px 8px 22px;
+            border: 1.5px solid #ffdccc;
+            box-shadow: 0 4px 0 #ecd3c4;
+            margin-bottom: 28px;
+            transition: 0.15s;
+        }
+
+        .switch-row:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #ecd3c4;
+        }
+
+        .switch-row .label {
+            font-weight: 700;
+            font-size: 15px;
+            color: #5d3a2a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .switch-row .label i {
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-wrap span {
+            font-size: 14px;
+            font-weight: 500;
+            color: #8f5f4a;
+        }
+
+        .toggle {
+            position: relative;
+            width: 52px;
+            height: 30px;
+            background: #e6cdbe;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.25s;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .toggle.active {
+            background: #ff9a73;
+        }
+
+        .toggle .knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        .toggle.active .knob {
+            left: 25px;
+        }
+
+        /* 抽奖按钮 */
+        .draw-btn {
+            width: 100%;
+            padding: 18px 0;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #ff9f7a, #ff7f5a);
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 0 #c9603e, 0 10px 30px rgba(230, 120, 80, 0.3);
+            cursor: pointer;
+            transition: all 0.08s linear;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            top: 0;
+        }
+
+        .draw-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #c9603e, 0 10px 30px rgba(230, 120, 80, 0.2);
+        }
+
+        .draw-btn:disabled {
+            opacity: 0.6;
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #c9603e;
+            pointer-events: none;
+        }
+
+        .draw-btn .btn-emoji {
+            font-size: 28px;
+        }
+
+        /* 结果区 */
+        .result-area {
+            background: #fff4ed;
+            border-radius: 40px;
+            padding: 20px 22px 24px;
+            border: 2px dashed #ffc8b0;
+            min-height: 100px;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .result-area .empty-hint {
+            color: #c9a998;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            padding: 14px 0 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .result-area .empty-hint i {
+            font-style: normal;
+            font-size: 22px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .result-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-item {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #4f2c1e;
+            box-shadow: 0 4px 0 #e6cdbe, 0 4px 12px rgba(160, 80, 50, 0.08);
+            border: 1.5px solid #ffdccc;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-item .badge {
+            background: #ffdccc;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0 12px;
+            line-height: 22px;
+            color: #6b3f2e;
+        }
+
+        .result-item .num {
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .result-theme-tag {
+            display: inline-block;
+            background: #ffd8c8;
+            border-radius: 30px;
+            padding: 2px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #5d3a2a;
+            margin-bottom: 14px;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.7);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .result-item.pop {
+            animation: popIn 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+        }
+
+        /* 历史抽奖小标签 */
+        .history-tip {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #b07a64;
+            text-align: center;
+            border-top: 1px solid #ffdccc;
+            padding-top: 14px;
+            opacity: 0.7;
+        }
+
+        /* 响应式 */
+        @media (max-width: 460px) {
+            .card {
+                padding: 20px 16px 30px;
+                border-radius: 40px;
+            }
+            .param-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .param-item {
+                padding: 12px 12px 14px;
+            }
+            .param-control input[type="number"] {
+                width: 56px;
+                font-size: 15px;
+                padding: 6px 4px;
+            }
+            .main-title {
+                font-size: 22px;
+            }
+            .host-name {
+                font-size: 17px;
+            }
+            .avatar-wrapper {
+                width: 56px;
+                height: 56px;
+            }
+            .draw-btn {
+                font-size: 20px;
+                padding: 15px 0;
+            }
+            .result-item {
+                font-size: 18px;
+                padding: 6px 16px;
+            }
+            .theme-input-wrap {
+                padding: 2px 2px 2px 14px;
+            }
+            .theme-input-wrap input {
+                font-size: 14px;
+                padding: 8px 0;
+            }
+            .switch-row {
+                padding: 6px 14px 6px 18px;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .param-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .param-control input[type="number"] {
+                width: 48px;
+                font-size: 13px;
+            }
+            .param-label {
+                font-size: 12px;
+            }
+        }
+
+        /* 工具类 */
+        .text-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" role="main">
+        <!-- 主播信息 -->
+        <div class="host-section">
+            <div class="avatar-wrapper">
+                <img src="https://i.ibb.co/5WMkgRGF/IMG-1461.jpg" alt="太悲苦蛋仔主播" loading="lazy" />
+            </div>
+            <div class="host-info">
+                <div class="host-name">
+                    🥚 太悲苦蛋仔
+                    <span>群内抽奖</span>
+                </div>
+                <div class="host-sub">
+                    <i>🎮 蛋仔派对</i>
+                    <span style="font-size:12px; color:#b07a64;">· 幸运降临</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标题 & 主题 -->
+        <div class="title-area">
+            <div class="title-row">
+                <div class="main-title">
+                    🎲 抽奖
+                    <small>随机数</small>
+                </div>
+            </div>
+            <div class="theme-input-wrap">
+                <label for="themeInput">
+                    <i>📌</i> 主题
+                </label>
+                <input type="text" id="themeInput" placeholder="写点啥 ..." value="蛋仔皮肤" maxlength="20" />
+                <span class="emoji-tag">✨ 抽</span>
+            </div>
+        </div>
+
+        <!-- 参数 -->
+        <div class="param-grid">
+            <!-- 最小值 -->
+            <div class="param-item">
+                <div class="param-label"><i>🔽</i> 最小值</div>
+                <div class="param-control">
+                    <input type="number" id="minVal" value="1" min="0" step="1" />
+                </div>
+            </div>
+            <!-- 最大值 -->
+            <div class="param-item">
+                <div class="param-label"><i>🔼</i> 最大值</div>
+                <div class="param-control">
+                    <input type="number" id="maxVal" value="100" min="1" step="1" />
+                </div>
+            </div>
+            <!-- 抽几人 -->
+            <div class="param-item">
+                <div class="param-label"><i>👥</i> 抽几人</div>
+                <div class="param-control">
+                    <input type="number" id="countVal" value="1" min="1" max="50" step="1" />
+                    <span class="range-label mini">人</span>
+                </div>
+            </div>
+            <!-- 额外占位：显示范围 -->
+            <div class="param-item" style="background:#fff2ea;">
+                <div class="param-label"><i>📊</i> 范围</div>
+                <div class="param-control" style="justify-content:center; gap:4px; font-weight:600; color:#5d3a2a; padding-top:4px;">
+                    <span id="rangeDisplay">1 ~ 100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 重复开关 -->
+        <div class="switch-row" id="repeatSwitch">
+            <div class="label">
+                <i>🔄</i> 允许重复
+            </div>
+            <div class="toggle-wrap">
+                <span id="repeatLabel">关闭</span>
+                <div class="toggle" id="toggleBtn" role="button" tabindex="0" aria-label="切换重复开关">
+                    <div class="knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 抽奖按钮 -->
+        <button class="draw-btn" id="drawBtn">
+            <span class="btn-emoji">🎯</span> 抽！
+        </button>
+
+        <!-- 结果 -->
+        <div class="result-area" id="resultArea">
+            <div id="resultContent">
+                <div class="empty-hint">
+                    <i>🎁</i>
+                    点击「抽！」试试手气
+                </div>
+            </div>
+            <div class="history-tip" id="historyTip">✨ 每次抽奖都会刷新</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // DOM 元素
+            const minInput = document.getElementById('minVal');
+            const maxInput = document.getElementById('maxVal');
+            const countInput = document.getElementById('countVal');
+            const themeInput = document.getElementById('themeInput');
+            const rangeDisplay = document.getElementById('rangeDisplay');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const repeatLabel = document.getElementById('repeatLabel');
+            const drawBtn = document.getElementById('drawBtn');
+            const resultContent = document.getElementById('resultContent');
+            const historyTip = document.getElementById('historyTip');
+
+            // 状态
+            let allowRepeat = false; // 默认关闭
+
+            // ---------- 更新范围显示 ----------
+            function updateRangeDisplay() {
+                const min = parseInt(minInput.value, 10) || 0;
+                const max = parseInt(maxInput.value, 10) || 1;
+                rangeDisplay.textContent = `${min} ~ ${max}`;
+            }
+
+            minInput.addEventListener('input', updateRangeDisplay);
+            maxInput.addEventListener('input', updateRangeDisplay);
+            // 初始更新
+            updateRangeDisplay();
+
+            // ---------- 开关逻辑 ----------
+            function setRepeatState(active) {
+                allowRepeat = active;
+                if (active) {
+                    toggleBtn.classList.add('active');
+                    repeatLabel.textContent = '开启';
+                } else {
+                    toggleBtn.classList.remove('active');
+                    repeatLabel.textContent = '关闭';
+                }
+            }
+
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                setRepeatState(!allowRepeat);
+            });
+
+            // 键盘可访问性
+            toggleBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setRepeatState(!allowRepeat);
+                }
+            });
+
+            // 初始状态：关闭
+            setRepeatState(false);
+
+            // ---------- 辅助：限制输入范围 ----------
+            function clampInput(input, minVal, maxVal) {
+                let val = parseInt(input.value, 10);
+                if (isNaN(val)) {
+                    input.value = minVal;
+                    return;
+                }
+                if (val < minVal) input.value = minVal;
+                if (val > maxVal) input.value = maxVal;
+            }
+
+            minInput.addEventListener('change', function() {
+                let min = parseInt(this.value, 10) || 0;
+                let max = parseInt(maxInput.value, 10) || 1;
+                if (min > max) {
+                    this.value = max;
+                }
+                updateRangeDisplay();
+            });
+
+            maxInput.addEventListener('change', function() {
+                let max = parseInt(this.value, 10) || 1;
+                let min = parseInt(minInput.value, 10) || 0;
+                if (max < min) {
+                    this.value = min;
+                }
+                updateRangeDisplay();
+            });
+
+            countInput.addEventListener('change', function() {
+                let val = parseInt(this.value, 10) || 1;
+                if (val < 1) this.value = 1;
+                if (val > 50) this.value = 50;
+            });
+
+            // ---------- 核心抽奖 ----------
+            function doDraw() {
+                // 读取参数
+                let min = parseInt(minInput.value, 10);
+                let max = parseInt(maxInput.value, 10);
+                let count = parseInt(countInput.value, 10);
+                const theme = themeInput.value.trim() || '未命名';
+
+                // 校验
+                if (isNaN(min)) min = 0;
+                if (isNaN(max)) max = 1;
+                if (isNaN(count) || count < 1) count = 1;
+
+                if (min > max) {
+                    // 交换
+                    [min, max] = [max, min];
+                    minInput.value = min;
+                    maxInput.value = max;
+                    updateRangeDisplay();
+                }
+
+                // 如果范围无效
+                if (min === max && count > 1 && !allowRepeat) {
+                    // 不允许重复且范围只有一个数，但抽多人 -> 提示
+                    resultContent.innerHTML = `
+                        <div style="text-align:center; padding:12px 0; color:#b07a64;">
+                            <div style="font-size:40px; margin-bottom:4px;">😵</div>
+                            <div style="font-weight:600;">范围只有一个数，无法抽不重复的多人</div>
+                            <div style="font-size:14px; margin-top:6px;">请调整范围 或 开启「允许重复」</div>
+                        </div>
+                    `;
+                    historyTip.textContent = '⚠️ 调整参数再试试';
+                    return;
+                }
+
+                // 如果允许重复，最大抽取数量不限制；如果不允许重复，最大数量不能超过范围大小
+                const rangeSize = max - min + 1;
+                if (!allowRepeat && count > rangeSize) {
+                    resultContent.innerHTML = `
+                        <div style="text-align:center; padding:12px 0; color:#b07a64;">
+                            <div style="font-size:40px; margin-bottom:4px;">🤯</div>
+                            <div style="font-weight:600;">人数超过范围总数 (${rangeSize}个)</div>
+                            <div style="font-size:14px; margin-top:6px;">请减少人数 或 开启「允许重复」</div>
+                        </div>
+                    `;
+                    historyTip.textContent = '⚠️ 人数太多啦';
+                    return;
+                }
+
+                // ---- 执行抽奖 ----
+                let results = [];
+                if (allowRepeat) {
+                    // 可重复：直接随机 count 次
+                    for (let i = 0; i < count; i++) {
+                        const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                        results.push(num);
+                    }
+                } else {
+                    // 不重复：从范围内抽取 count 个
+                    const pool = [];
+                    for (let i = min; i <= max; i++) {
+                        pool.push(i);
+                    }
+                    // 打乱并取前 count 个 (Fisher–Yates 部分)
+                    const shuffled = pool.slice();
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    results = shuffled.slice(0, count);
+                    // 按从小到大排序，更清晰
+                    results.sort((a, b) => a - b);
+                }
+
+                // ---- 渲染结果 ----
+                let html = '';
+                // 显示主题标签
+                const themeDisplay = theme.length > 12 ? theme.slice(0, 12) + '…' : theme;
+                html += `<div class="result-theme-tag">🎀 ${themeDisplay}</div>`;
+
+                html += `<div class="result-list">`;
+                results.forEach((num, idx) => {
+                    const badge = `#${idx + 1}`;
+                    html += `
+                        <div class="result-item pop">
+                            <span class="badge">${badge}</span>
+                            <span class="num">${num}</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+
+                // 额外信息
+                const repeatInfo = allowRepeat ? '🔄 可重复' : '🔒 不重复';
+                const rangeInfo = `${min} ~ ${max}`;
+                html += `
+                    <div style="text-align:center; margin-top:14px; font-size:13px; color:#b07a64; opacity:0.7; display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+                        <span>📊 ${rangeInfo}</span>
+                        <span>👥 ${results.length} 人</span>
+                        <span>${repeatInfo}</span>
+                    </div>
+                `;
+
+                resultContent.innerHTML = html;
+
+                // 更新历史提示
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                historyTip.textContent = `🎉 抽于 ${timeStr}  ·  主题：${themeDisplay}`;
+
+                // 动画重播
+                const items = resultContent.querySelectorAll('.result-item');
+                items.forEach((el, index) => {
+                    el.style.animation = 'none';
+                    requestAnimationFrame(() => {
+                        el.style.animation = `popIn 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) ${index * 0.06}s both`;
+                    });
+                });
+            }
+
+            // ---------- 绑定抽奖按钮 ----------
+            drawBtn.addEventListener('click', doDraw);
+
+            // 回车快捷键 (在输入框内按回车触发抽奖)
+            const inputs = [minInput, maxInput, countInput, themeInput];
+            inputs.forEach(inp => {
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        doDraw();
+                    }
+                });
+            });
+
+            // 点击开关行空白区域也能切换 (方便)
+            document.getElementById('repeatSwitch').addEventListener('click', function(e) {
+                // 如果点击的是开关本身或者内部元素，由 toggleBtn 处理，这里不重复触发
+                if (e.target.closest('.toggle') || e.target.closest('.toggle-wrap')) return;
+                setRepeatState(!allowRepeat);
+            });
+
+            // ---------- 初始加载自动抽一次？ (可选) 不自动，但展示友好提示 ----------
+            // 预设一个示例结果，让页面不空
+            // 但为了不干扰用户体验，保留空状态，但展示示例数据可以更生动。
+            // 我们在页面加载后，自动执行一次抽奖，展示示例
+            window.addEventListener('load', function() {
+                // 如果结果区域是空的，自动抽一次（但保留用户可能修改参数）
+                // 但为了不覆盖用户可能想要的状态，我们仅在空的时候执行。
+                if (resultContent.querySelector('.empty-hint')) {
+                    // 但因为有提示，我们抽一次展示效果
+                    doDraw();
+                }
+            });
+
+            // 额外：当用户修改参数时，更新范围显示（已做）
+            // 当主题变化时，不需要额外操作
+
+            // 防止输入负数或过大
+            minInput.addEventListener('blur', function() {
+                let v = parseInt(this.value, 10);
+                if (isNaN(v) || v < 0) this.value = 0;
+                updateRangeDisplay();
+            });
+            maxInput.addEventListener('blur', function() {
+                let v = parseInt(this.value, 10);
+                if (isNaN(v) || v < 1) this.value = 1;
+                updateRangeDisplay();
+            });
+
+            console.log('🥚 太悲苦蛋仔抽奖已加载！');
+        })();
+    </script>
+
+</body>
+</html>
